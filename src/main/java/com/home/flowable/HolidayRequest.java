@@ -1,25 +1,27 @@
 package com.home.flowable;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.flowable.engine.HistoryService;
 import org.flowable.engine.ProcessEngine;
 import org.flowable.engine.ProcessEngineConfiguration;
 import org.flowable.engine.RepositoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
+import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-
-import java.util.HashMap;
 
 public class HolidayRequest  {
     public static void main( String[] args ) {
     	ProcessEngineConfiguration cfg = new StandaloneProcessEngineConfiguration()
-    		.setJdbcUrl("jdbc:h2:mem:flowable;DB_CLOSE_DELAY=-1")
+    		.setJdbcUrl("jdbc:h2:~/flowable-db;DB_CLOSE_DELAY=-1;NON_KEYWORDS=VALUE")
     		.setJdbcUsername("sa")
     		.setJdbcPassword("")
     		.setJdbcDriver("org.h2.Driver")
@@ -57,7 +59,7 @@ public class HolidayRequest  {
     	variables.put("nrOfHolidays", nrOfHolidays);
     	variables.put("description", description);
     	
-    	runtimeService.startProcessInstanceByKey("holidayRequest", variables);
+    	ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("holidayRequest", variables);
     	
     	TaskService taskService = processEngine.getTaskService();
     	List<Task> tasks = taskService.createTaskQuery().taskCandidateGroup("managers").list();
@@ -81,6 +83,17 @@ public class HolidayRequest  {
     	taskService.complete(task.getId(), variables);
     	
     	
+    	HistoryService historyService = processEngine.getHistoryService();
+    	List<HistoricActivityInstance> activities = historyService.createHistoricActivityInstanceQuery()
+    		.processInstanceId(processInstance.getId())
+    		.finished()
+    		.orderByHistoricActivityInstanceEndTime().asc()
+    		.list();
+    	
+    	for (HistoricActivityInstance activity : activities) {
+    		  System.out.println(activity.getActivityId() + " took "
+    		    + activity.getDurationInMillis() + " milliseconds");
+    		}
     	
     }
 }
