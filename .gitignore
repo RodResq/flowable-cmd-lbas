@@ -212,3 +212,10 @@ fabric.properties
 # End of https://www.toptal.com/developers/gitignore/api/intellij
 
 
+/.idea/.gitignore
+/.idea/compiler.xml
+/.idea/encodings.xml
+/.idea/jarRepositories.xml
+/.idea/material_theme_project_new.xml
+/.idea/misc.xml
+/.idea/vcs.xml
